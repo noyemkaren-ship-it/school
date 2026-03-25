@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Результаты</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/users">Ученики</a>
+                <a href="/materials">Материалы</a>
+                <a href="/tests">Тесты</a>
+                <a href="/mcko">МЦКО</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 20px;">📊 Результаты учеников</h2>
+
+        <div class="card" style="margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Класс</label>
+                    <select id="filter-class">
+                        <option value="">Все классы</option>
+                        <option value="5">5 класс</option>
+                        <option value="6">6 класс</option>
+                        <option value="7">7 класс</option>
+                        <option value="8">8 класс</option>
+                        <option value="9">9 класс</option>
+                        <option value="10">10 класс</option>
+                        <option value="11">11 класс</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Предмет</label>
+                    <select id="filter-subject">
+                        <option value="">Все предметы</option>
+                        <option value="english">Английский</option>
+                        <option value="chinese">Китайский</option>
+                        <option value="russian">Русский</option>
+                        <option value="math">Математика</option>
+                    </select>
+                </div>
+                <button onclick="loadResults()" class="btn">Применить</button>
+                <button onclick="exportCSV()" class="btn btn-outline">📎 Экспорт CSV</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Фамилия</th>
+                        <th>Имя</th>
+                        <th>Класс</th>
+                        <th>Предмет</th>
+                        <th>Тест</th>
+                        <th>Баллы</th>
+                        <th>Оценка</th>
+                        <th>Дата</th>
+                    </tr>
+                </thead>
+                <tbody id="results-table">
+                    <tr>
+                        <td colspan="8" style="text-align: center;">Загрузка...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+
+    <script>
+        let currentResults = [];
+
+        async function loadResults() {
+            const classFilter = document.getElementById('filter-class').value;
+            const subjectFilter = document.getElementById('filter-subject').value;
+
+            try {
+                const response = await fetch(`/results_data?class=${classFilter}&subject=${subjectFilter}`);
+                const data = await response.json();
+                currentResults = data;
+                renderTable(data);
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('results-table').innerHTML = '<tr><td colspan="8" style="text-align: center;">❌ Ошибка загрузки результатов</td></tr>';
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('results-table');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">📭 Нет результатов</td></tr>';
+                return;
+            }
+
+            let html = '';
+            for (let item of data) {
+                let gradeClass = '';
+                if (item.grade >= 4) gradeClass = 'badge-success';
+                else if (item.grade == 3) gradeClass = 'badge-warning';
+                else gradeClass = 'badge-danger';
+
+                const subjectNames = {
+                    'english': '🇬🇧 Английский',
+                    'chinese': '🇨🇳 Китайский',
+                    'russian': '🇷🇺 Русский',
+                    'math': '📐 Математика'
+                };
+                const subjectName = subjectNames[item.subject] || item.subject;
+
+                html += `
+                    <tr>
+                        <td>${item.surname || '-'}</td>
+                        <td>${item.name || '-'}</td>
+                        <td>${item.class || '-'}</td>
+                        <td>${subjectName}</td>
+                        <td>${item.test_name || '-'}</td>
+                        <td>${item.score || 0} / ${item.total || 0}</td>
+                        <td><span class="badge ${gradeClass}">${item.grade || 2}</span></td>
+                        <td>${item.date || '-'}</td>
+                    </tr>
+                `;
+            }
+            tbody.innerHTML = html;
+        }
+
+        function exportCSV() {
+            if (currentResults.length === 0) {
+                alert('Нет данных для экспорта');
+                return;
+            }
+
+            let csv = 'Фамилия,Имя,Класс,Предмет,Тест,Баллы,Оценка,Дата\n';
+
+            for (let item of currentResults) {
+                csv += `"${item.surname || ''}","${item.name || ''}","${item.class || ''}","${item.subject || ''}","${item.test_name || ''}","${item.score || 0}/${item.total || 0}","${item.grade || 2}","${item.date || ''}"\n`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'results.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        loadResults();
+    </script>
+</body>
+</html>

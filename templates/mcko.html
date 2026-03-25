@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — МЦКО</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/materials">Материалы</a>
+                <a href="/tests">Тесты</a>
+                <a href="/results">Результаты</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 20px;">🎯 МЦКО — тренировочные варианты</h2>
+
+        <div class="grid" id="subjects-grid">
+            <div class="card">
+                <h3>🇬🇧 Английский язык</h3>
+                <p>6 класс, 3 варианта</p>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="startTest('english', 6, 1)" class="btn">Вариант 1</button>
+                    <button onclick="startTest('english', 6, 2)" class="btn">Вариант 2</button>
+                    <button onclick="startTest('english', 6, 3)" class="btn">Вариант 3</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🇨🇳 Китайский язык</h3>
+                <p>6 класс, 3 варианта</p>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="startTest('chinese', 6, 1)" class="btn">Вариант 1</button>
+                    <button onclick="startTest('chinese', 6, 2)" class="btn">Вариант 2</button>
+                    <button onclick="startTest('chinese', 6, 3)" class="btn">Вариант 3</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🇷🇺 Русский язык</h3>
+                <p>6 класс, 3 варианта</p>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="startTest('russian', 6, 1)" class="btn">Вариант 1</button>
+                    <button onclick="startTest('russian', 6, 2)" class="btn">Вариант 2</button>
+                    <button onclick="startTest('russian', 6, 3)" class="btn">Вариант 3</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📐 Математика</h3>
+                <p>6 класс, 3 варианта</p>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="startTest('math', 6, 1)" class="btn">Вариант 1</button>
+                    <button onclick="startTest('math', 6, 2)" class="btn">Вариант 2</button>
+                    <button onclick="startTest('math', 6, 3)" class="btn">Вариант 3</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="test-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto;">
+            <div style="max-width: 700px; margin: 50px auto; padding: 20px;">
+                <div class="card" id="test-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 id="test-title">Тест</h3>
+                        <button onclick="closeTest()" style="background: none; border: none; font-size: 24px; cursor: pointer;">✖</button>
+                    </div>
+                    <div id="test-questions"></div>
+                    <button onclick="submitTest()" class="btn" style="width: 100%; margin-top: 20px;">Отправить ответы</button>
+                    <div id="test-result" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+
+    <script>
+        let currentTest = null;
+        let currentQuestions = null;
+
+        async function startTest(subject, classLevel, variant) {
+            currentTest = { subject, classLevel, variant };
+
+            try {
+                const response = await fetch(`/api/mcko/${subject}/${classLevel}/${variant}`);
+                const data = await response.json();
+                currentQuestions = data.questions;
+
+                document.getElementById('test-title').innerHTML = `${subject.toUpperCase()} - ${classLevel} класс, вариант ${variant}`;
+
+                let questionsHtml = '';
+                for (let q of data.questions) {
+                    questionsHtml += `
+                        <div style="margin-bottom: 25px;">
+                            <p><strong>${q.id}. ${q.question}</strong></p>
+                            <input type="text" id="answer_${q.id}" placeholder="Введите ответ" style="width: 100%; margin-top: 10px;">
+                        </div>
+                    `;
+                }
+                document.getElementById('test-questions').innerHTML = questionsHtml;
+                document.getElementById('test-result').innerHTML = '';
+                document.getElementById('test-modal').style.display = 'block';
+            } catch (error) {
+                alert('Ошибка загрузки теста');
+            }
+        }
+
+        function closeTest() {
+            document.getElementById('test-modal').style.display = 'none';
+        }
+
+        async function submitTest() {
+            if (!currentTest || !currentQuestions) return;
+
+            const answers = {};
+            for (let q of currentQuestions) {
+                const answer = document.getElementById(`answer_${q.id}`).value;
+                answers[q.id] = answer;
+            }
+
+            const variantKey = `${currentTest.subject}_${currentTest.classLevel}_v${currentTest.variant}`;
+
+            try {
+                const response = await fetch('/api/mcko/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        variant_key: variantKey,
+                        answers: answers
+                    })
+                });
+                const result = await response.json();
+
+                let resultHtml = `
+                    <div class="alert alert-info">
+                        <p><strong>Результат:</strong> ${result.score} из ${result.total} баллов</p>
+                        <p><strong>Оценка:</strong> ${result.grade}</p>
+                    </div>
+                `;
+
+                for (let [qId, isCorrect] of Object.entries(result.results)) {
+                    resultHtml += `
+                        <div class="alert ${isCorrect ? 'alert-success' : 'alert-error'}" style="margin-top: 10px;">
+                            Вопрос ${qId}: ${isCorrect ? '✅ Правильно' : '❌ Неправильно'}
+                        </div>
+                    `;
+                }
+
+                document.getElementById('test-result').innerHTML = resultHtml;
+            } catch (error) {
+                alert('Ошибка проверки ответов');
+            }
+        }
+    </script>
+</body>
+</html>

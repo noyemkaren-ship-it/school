@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Материалы</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/materials/add">➕ Добавить</a>
+                <a href="/tests">Тесты</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: white;">📚 Все материалы</h2>
+            <a href="/materials/add" class="btn">+ Добавить материал</a>
+        </div>
+
+        <div class="grid" id="materials-list">
+            <div style="text-align: center; padding: 40px;">
+                <div class="card" style="display: inline-block;">
+                    <p>Загрузка материалов...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+
+    <script>
+        async function loadMaterials() {
+            try {
+                const response = await fetch('/datas');
+                const data = await response.json();
+
+                const container = document.getElementById('materials-list');
+
+                if (data.message && data.message === "datas is empty") {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <div class="card" style="display: inline-block;">
+                                <p>📭 Пока нет материалов</p>
+                                <a href="/materials/add" class="btn" style="margin-top: 15px;">Добавить первый материал</a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (Array.isArray(data)) {
+                    if (data.length === 0) {
+                        container.innerHTML = `
+                            <div style="text-align: center; padding: 40px;">
+                                <div class="card" style="display: inline-block;">
+                                    <p>📭 Пока нет материалов</p>
+                                    <a href="/materials/add" class="btn" style="margin-top: 15px;">Добавить материал</a>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    let html = '';
+                    for (let item of data) {
+                        const subjectNames = {
+                            'english': '🇬🇧 Английский',
+                            'chinese': '🇨🇳 Китайский',
+                            'russian': '🇷🇺 Русский',
+                            'math': '📐 Математика'
+                        };
+                        const subjectName = subjectNames[item.school_subject] || item.school_subject;
+
+                        html += `
+                            <div class="card">
+                                <h3>📄 ${item.name}</h3>
+                                <p><strong>${subjectName}</strong> | ${item.school_class} класс</p>
+                                <p style="margin-top: 15px; color: #666;">${item.text.substring(0, 150)}${item.text.length > 150 ? '...' : ''}</p>
+                            </div>
+                        `;
+                    }
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('materials-list').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div class="card" style="display: inline-block;">
+                            <p>❌ Ошибка загрузки материалов</p>
+                            <button onclick="loadMaterials()" class="btn" style="margin-top: 15px;">Повторить</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        loadMaterials();
+    </script>
+</body>
+</html>

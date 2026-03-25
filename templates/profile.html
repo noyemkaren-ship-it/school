@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Профиль</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/users">Ученики</a>
+                <a href="/materials">Материалы</a>
+                <a href="/tests">Тесты</a>
+                <a href="/results">Результаты</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 20px;">👤 Мой профиль</h2>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📋 Личная информация</h3>
+                <div id="profile-info" style="margin-top: 20px;">
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>⚙️ Настройки</h3>
+                <div style="margin-top: 20px;">
+                    <button onclick="changePassword()" class="btn" style="width: 100%; margin-bottom: 10px;">Сменить пароль</button>
+                    <button onclick="logout()" class="btn btn-outline" style="width: 100%;">Выйти из аккаунта</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📊 Статистика</h3>
+                <div id="stats" style="margin-top: 20px;">
+                    <p>Загрузка...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="password-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000;">
+            <div style="max-width: 400px; margin: 100px auto; padding: 20px;">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">Смена пароля</h3>
+                    <form id="password-form">
+                        <div class="form-group">
+                            <label>Новый пароль</label>
+                            <input type="password" id="new-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Подтвердите пароль</label>
+                            <input type="password" id="confirm-password" required>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn">Сохранить</button>
+                            <button type="button" onclick="closePasswordModal()" class="btn btn-outline">Отмена</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+
+    <script>
+        async function loadProfile() {
+            try {
+                const response = await fetch('/user_data');
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById('profile-info').innerHTML = `<p>❌ ${data.error}</p>`;
+                    return;
+                }
+
+                const profileDiv = document.getElementById('profile-info');
+                profileDiv.innerHTML = `
+                    <p><strong>Имя:</strong> ${data.name || '-'}</p>
+                    <p><strong>Фамилия:</strong> ${data.surname || '-'}</p>
+                    <p><strong>Всего баллов:</strong> ${data.scores || 0}</p>
+                `;
+
+                const statsDiv = document.getElementById('stats');
+                statsDiv.innerHTML = `
+                    <p><strong>Пройдено тестов:</strong> ${data.tests_passed || 0}</p>
+                    <p><strong>Средний балл:</strong> ${data.avg_score || 0}</p>
+                    <p><strong>Лучший результат:</strong> ${data.best_score || 0}</p>
+                `;
+            } catch (error) {
+                console.error('Ошибка загрузки профиля:', error);
+                document.getElementById('profile-info').innerHTML = '<p>❌ Ошибка загрузки данных</p>';
+            }
+        }
+
+        function changePassword() {
+            document.getElementById('password-modal').style.display = 'block';
+        }
+
+        function closePasswordModal() {
+            document.getElementById('password-modal').style.display = 'none';
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        document.getElementById('password-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newPass = document.getElementById('new-password').value;
+            const confirmPass = document.getElementById('confirm-password').value;
+
+            if (newPass !== confirmPass) {
+                alert('Пароли не совпадают');
+                return;
+            }
+
+            try {
+                const response = await fetch('/change_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: newPass })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Пароль успешно изменен');
+                    closePasswordModal();
+                } else {
+                    alert('Ошибка: ' + result.message);
+                }
+            } catch (error) {
+                alert('Ошибка при смене пароля');
+            }
+        });
+
+        loadProfile();
+    </script>
+</body>
+</html>

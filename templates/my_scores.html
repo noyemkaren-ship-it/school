@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Мои оценки</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/my_tests">Мои тесты</a>
+                <a href="/materials">Материалы</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 20px;">📊 Мои оценки</h2>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Предмет</th>
+                        <th>Название теста</th>
+                        <th>Баллы</th>
+                        <th>Оценка</th>
+                        <th>Дата</th>
+                    </tr>
+                </thead>
+                <tbody id="scores-table">
+                    <tr>
+                        <td colspan="5" style="text-align: center;">Загрузка...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+
+    <script>
+        async function loadScores() {
+            try {
+                const response = await fetch('/my_scores_data');
+                const data = await response.json();
+
+                const tbody = document.getElementById('scores-table');
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">📭 Пока нет оценок</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                for (let item of data) {
+                    let gradeClass = '';
+                    if (item.grade >= 4) gradeClass = 'badge-success';
+                    else if (item.grade == 3) gradeClass = 'badge-warning';
+                    else gradeClass = 'badge-danger';
+
+                    html += `
+                        <tr>
+                            <td>${item.subject || '-'}</td>
+                            <td>${item.test_name || '-'}</td>
+                            <td>${item.score || 0}</td>
+                            <td><span class="badge ${gradeClass}">${item.grade || 2}</span></td>
+                            <td>${item.date || '-'}</td>
+                        </tr>
+                    `;
+                }
+                tbody.innerHTML = html;
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('scores-table').innerHTML = '<tr><td colspan="5" style="text-align: center;">❌ Ошибка загрузки оценок</td></tr>';
+            }
+        }
+
+        loadScores();
+    </script>
+</body>
+</html>

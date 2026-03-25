@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Ошибка</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="nav">
+                <a href="/">Главная</a>
+                {% if user %}
+                    <a href="/main">Панель</a>
+                    <a href="/logout">Выйти</a>
+                {% else %}
+                    <a href="/login">Вход</a>
+                    <a href="/register">Регистрация</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 80px 20px;">
+            <div class="card" style="display: inline-block; max-width: 500px;">
+                <div style="font-size: 80px; margin-bottom: 20px;">⚠️</div>
+                <h2 style="color: #f5576c; margin-bottom: 20px;">Ошибка</h2>
+                <p style="color: #666; margin-bottom: 30px;">
+                    {% if error %}
+                        {{ error }}
+                    {% else %}
+                        Произошла непредвиденная ошибка
+                    {% endif %}
+                </p>
+                <a href="/" class="btn">Вернуться на главную</a>
+                {% if user %}
+                    <a href="/main" class="btn btn-outline" style="margin-left: 10px;">В панель</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Мои тесты</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/my_scores">Мои оценки</a>
+                <a href="/materials">Материалы</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 20px;">📝 Мои тесты</h2>
+
+        <div class="grid" id="tests-list">
+            <div style="text-align: center; padding: 40px;">
+                <div class="card" style="display: inline-block;">
+                    <p>Загрузка тестов...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+
+    <script>
+        async function loadTests() {
+            try {
+                const response = await fetch('/my_tests_data');
+                const data = await response.json();
+
+                const container = document.getElementById('tests-list');
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <div class="card" style="display: inline-block;">
+                                <p>📭 У вас нет пройденных тестов</p>
+                                <a href="/tests" class="btn" style="margin-top: 15px;">Перейти к тестам</a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                for (let test of data) {
+                    let statusClass = test.passed ? 'badge-success' : 'badge-warning';
+                    let statusText = test.passed ? '✅ Пройден' : '⏳ Не пройден';
+
+                    html += `
+                        <div class="card">
+                            <h3>📋 ${test.name}</h3>
+                            <p><strong>Предмет:</strong> ${test.subject}</p>
+                            <p><strong>Класс:</strong> ${test.class}</p>
+                            <p><strong>Результат:</strong> ${test.score || 0} из ${test.total || 0} баллов</p>
+                            <p><strong>Статус:</strong> <span class="badge ${statusClass}">${statusText}</span></p>
+                            <p><strong>Дата:</strong> ${test.date || '-'}</p>
+                            ${!test.passed ? `<a href="/test/${test.id}" class="btn" style="margin-top: 15px;">Пройти тест</a>` : ''}
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('tests-list').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div class="card" style="display: inline-block;">
+                            <p>❌ Ошибка загрузки тестов</p>
+                            <button onclick="loadTests()" class="btn" style="margin-top: 15px;">Повторить</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        loadTests();
+    </script>
+</body>
+</html>

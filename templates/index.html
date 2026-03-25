@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Образовательный портал</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="nav">
+                <a href="/">Главная</a>
+                <a href="/login">Вход</a>
+                <a href="/register">Регистрация</a>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 60px 20px;">
+            <h1 style="font-size: 48px; color: white; margin-bottom: 20px;">Добро пожаловать в<br>School11 HUB</h1>
+            <p style="font-size: 20px; color: rgba(255,255,255,0.9); margin-bottom: 40px;">
+                Образовательный портал для учителей и учеников
+            </p>
+
+            {% if user %}
+                <div class="card" style="display: inline-block; text-align: center;">
+                    <p style="font-size: 18px; margin-bottom: 20px;">Привет, {{ user }}!</p>
+                    <a href="/main" class="btn" style="margin-right: 10px;">Войти в панель</a>
+                    <a href="/logout" class="btn btn-outline">Выйти</a>
+                </div>
+            {% else %}
+                <div class="card" style="display: inline-block; text-align: center;">
+                    <p style="margin-bottom: 20px;">Войдите или зарегистрируйтесь, чтобы продолжить</p>
+                    <a href="/login" class="btn" style="margin-right: 10px;">Войти</a>
+                    <a href="/register" class="btn btn-outline">Регистрация</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="grid" style="margin-top: 40px;">
+            <div class="card">
+                <h3>📚 Для учителей</h3>
+                <p>Создавайте тесты, загружайте материалы, следите за успеваемостью учеников</p>
+            </div>
+            <div class="card">
+                <h3>🎓 Для учеников</h3>
+                <p>Проходите тесты, изучайте материалы, смотрите свои оценки</p>
+            </div>
+            <div class="card">
+                <h3>🎯 МЦКО</h3>
+                <p>Тренировочные варианты по математике, русскому, английскому и китайскому</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+</body>
+</html>

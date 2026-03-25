@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Создать тест</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/tests">Тесты</a>
+                <a href="/materials">Материалы</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <div style="padding: 20px 0;">
+            <div class="form-container" style="max-width: 800px;">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #667eea;">📝 Создание теста</h2>
+
+                <form id="create-test-form">
+                    <div class="form-group">
+                        <label>Название теста</label>
+                        <input type="text" id="test-name" placeholder="Например: Контрольная по Present Simple" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Предмет</label>
+                        <select id="test-subject" required>
+                            <option value="">Выберите предмет</option>
+                            <option value="english">🇬🇧 Английский язык</option>
+                            <option value="chinese">🇨🇳 Китайский язык</option>
+                            <option value="russian">🇷🇺 Русский язык</option>
+                            <option value="math">📐 Математика</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Класс</label>
+                        <select id="test-class" required>
+                            <option value="">Выберите класс</option>
+                            <option value="5">5 класс</option>
+                            <option value="6">6 класс</option>
+                            <option value="7">7 класс</option>
+                            <option value="8">8 класс</option>
+                            <option value="9">9 класс</option>
+                            <option value="10">10 класс</option>
+                            <option value="11">11 класс</option>
+                        </select>
+                    </div>
+
+                    <div id="questions-container">
+                        <h3 style="margin: 20px 0 15px 0;">Вопросы</h3>
+                        <div id="questions-list">
+                            <div class="question-item" data-idx="0">
+                                <div class="form-group">
+                                    <label>Вопрос 1</label>
+                                    <input type="text" class="question-text" placeholder="Введите вопрос" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Правильный ответ</label>
+                                    <input type="text" class="question-answer" placeholder="Правильный ответ" required>
+                                </div>
+                                <button type="button" class="btn btn-outline btn-danger remove-question" style="margin-top: 5px;">Удалить вопрос</button>
+                                <hr style="margin: 20px 0;">
+                            </div>
+                        </div>
+                        <button type="button" id="add-question" class="btn btn-outline" style="margin: 10px 0;">+ Добавить вопрос</button>
+                    </div>
+
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">Создать тест</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+
+    <script>
+        let questionCount = 1;
+
+        document.getElementById('add-question').addEventListener('click', () => {
+            const container = document.getElementById('questions-list');
+            const idx = questionCount;
+            const newQuestion = document.createElement('div');
+            newQuestion.className = 'question-item';
+            newQuestion.setAttribute('data-idx', idx);
+            newQuestion.innerHTML = `
+                <div class="form-group">
+                    <label>Вопрос ${idx + 1}</label>
+                    <input type="text" class="question-text" placeholder="Введите вопрос" required>
+                </div>
+                <div class="form-group">
+                    <label>Правильный ответ</label>
+                    <input type="text" class="question-answer" placeholder="Правильный ответ" required>
+                </div>
+                <button type="button" class="btn btn-outline btn-danger remove-question" style="margin-top: 5px;">Удалить вопрос</button>
+                <hr style="margin: 20px 0;">
+            `;
+            container.appendChild(newQuestion);
+            questionCount++;
+
+            attachRemoveEvents();
+        });
+
+        function attachRemoveEvents() {
+            document.querySelectorAll('.remove-question').forEach(btn => {
+                btn.removeEventListener('click', removeQuestion);
+                btn.addEventListener('click', removeQuestion);
+            });
+        }
+
+        function removeQuestion(e) {
+            const item = e.target.closest('.question-item');
+            if (document.querySelectorAll('.question-item').length > 1) {
+                item.remove();
+            } else {
+                alert('Должен быть хотя бы один вопрос');
+            }
+        }
+
+        document.getElementById('create-test-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('test-name').value;
+            const subject = document.getElementById('test-subject').value;
+            const classNum = document.getElementById('test-class').value;
+
+            const questions = [];
+            document.querySelectorAll('.question-item').forEach(item => {
+                const text = item.querySelector('.question-text').value;
+                const answer = item.querySelector('.question-answer').value;
+                if (text && answer) {
+                    questions.push({ text, answer });
+                }
+            });
+
+            if (questions.length === 0) {
+                alert('Добавьте хотя бы один вопрос');
+                return;
+            }
+
+            try {
+                const response = await fetch('/test/create_api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        subject: subject,
+                        class: classNum,
+                        questions: questions
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.id) {
+                    alert('Тест успешно создан!');
+                    window.location.href = '/tests';
+                } else {
+                    alert('Ошибка при создании теста');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('Ошибка при создании теста');
+            }
+        });
+
+        attachRemoveEvents();
+    </script>
+</body>
+</html>

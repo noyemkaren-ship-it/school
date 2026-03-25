@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Панель управления</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/users">Ученики</a>
+                <a href="/materials">Материалы</a>
+                <a href="/tests">Тесты</a>
+                <a href="/results">Результаты</a>
+                <a href="/mcko">МЦКО</a>
+                <a href="/profile">Профиль</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h3>📚 Ученики</h3>
+                <p>Просмотр списка учеников, их баллов и успеваемости</p>
+                <a href="/users" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            </div>
+
+            <div class="card">
+                <h3>📖 Материалы</h3>
+                <p>Учебные материалы, презентации, документы по предметам</p>
+                <a href="/materials" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            </div>
+
+            <div class="card">
+                <h3>📝 Тесты</h3>
+                <p>Создание и прохождение тестов, контроль знаний</p>
+                <a href="/tests" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            </div>
+
+            <div class="card">
+                <h3>📊 Результаты</h3>
+                <p>Статистика успеваемости, оценки, прогресс учеников</p>
+                <a href="/results" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            </div>
+
+            <div class="card">
+                <h3>🎯 МЦКО</h3>
+                <p>Тренировочные варианты по математике, русскому, английскому, китайскому</p>
+                <a href="/mcko" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            </div>
+
+            <div class="card">
+                <h3>👤 Профиль</h3>
+                <p>Настройки аккаунта, личная информация</p>
+                <a href="/profile" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+</body>
+</html>

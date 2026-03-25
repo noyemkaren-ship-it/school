@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Ученики</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/materials">Материалы</a>
+                <a href="/tests">Тесты</a>
+                <a href="/results">Результаты</a>
+                <a href="/mcko">МЦКО</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <h2 style="color: white; margin-bottom: 20px;">👨‍🎓 Список учеников</h2>
+
+        <div class="card" style="margin-bottom: 20px;">
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Класс</label>
+                    <select id="filter-class">
+                        <option value="">Все классы</option>
+                        <option value="5">5 класс</option>
+                        <option value="6">6 класс</option>
+                        <option value="7">7 класс</option>
+                        <option value="8">8 класс</option>
+                        <option value="9">9 класс</option>
+                        <option value="10">10 класс</option>
+                        <option value="11">11 класс</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Поиск</label>
+                    <input type="text" id="search-input" placeholder="Фамилия или имя" style="width: 200px;">
+                </div>
+                <button onclick="loadUsers()" class="btn">Применить</button>
+                <button onclick="resetFilters()" class="btn btn-outline">Сбросить</button>
+                <button onclick="exportCSV()" class="btn btn-outline">📎 Экспорт CSV</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Фамилия</th>
+                        <th>Имя</th>
+                        <th>Отчество</th>
+                        <th>Класс</th>
+                        <th>Баллы</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table">
+                    <tr>
+                        <td colspan="7" style="text-align: center;">Загрузка...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="edit-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000;">
+            <div style="max-width: 500px; margin: 100px auto; padding: 20px;">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px;">✏️ Редактирование ученика</h3>
+                    <form id="edit-form">
+                        <input type="hidden" id="edit-id">
+                        <div class="form-group">
+                            <label>Имя</label>
+                            <input type="text" id="edit-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Фамилия</label>
+                            <input type="text" id="edit-surname" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Отчество</label>
+                            <input type="text" id="edit-patronymic">
+                        </div>
+                        <div class="form-group">
+                            <label>Класс</label>
+                            <select id="edit-class">
+                                <option value="5">5 класс</option>
+                                <option value="6">6 класс</option>
+                                <option value="7">7 класс</option>
+                                <option value="8">8 класс</option>
+                                <option value="9">9 класс</option>
+                                <option value="10">10 класс</option>
+                                <option value="11">11 класс</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Баллы</label>
+                            <input type="number" id="edit-scores" min="0">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn">Сохранить</button>
+                            <button type="button" onclick="closeEditModal()" class="btn btn-outline">Отмена</button>
+                            <button type="button" id="delete-user-btn" class="btn btn-outline btn-danger" style="margin-left: auto;">Удалить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+
+    <script>
+        let currentUsers = [];
+
+        async function loadUsers() {
+            const classFilter = document.getElementById('filter-class').value;
+            const search = document.getElementById('search-input').value.toLowerCase();
+
+            try {
+                const response = await fetch('/users');
+                let data = await response.json();
+
+                if (classFilter) {
+                    data = data.filter(u => u.class_name == classFilter);
+                }
+                if (search) {
+                    data = data.filter(u =>
+                        u.surname.toLowerCase().includes(search) ||
+                        u.name.toLowerCase().includes(search)
+                    );
+                }
+
+                currentUsers = data;
+                renderTable(data);
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('users-table').innerHTML = '<tr><td colspan="7" style="text-align: center;">❌ Ошибка загрузки</td></tr>';
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('users-table');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">📭 Нет учеников</td></tr>';
+                return;
+            }
+
+            let html = '';
+            for (let user of data) {
+                html += `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.surname || '-'}</td>
+                        <td>${user.name || '-'}</td>
+                        <td>${user.patronymic || '-'}</td>
+                        <td>${user.class_name || '-'}</td>
+                        <td>${user.scores || 0}</td>
+                        <td>
+                            <button onclick="editUser(${user.id})" class="btn" style="padding: 5px 15px;">✏️</button>
+                        </td>
+                    </tr>
+                `;
+            }
+            tbody.innerHTML = html;
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-class').value = '';
+            document.getElementById('search-input').value = '';
+            loadUsers();
+        }
+
+        async function editUser(id) {
+            try {
+                const response = await fetch(`/user/${id}`);
+                const user = await response.json();
+
+                if (user.message === "USER NOT FOUND") {
+                    alert('Пользователь не найден');
+                    return;
+                }
+
+                document.getElementById('edit-id').value = user.id;
+                document.getElementById('edit-name').value = user.name || '';
+                document.getElementById('edit-surname').value = user.surname || '';
+                document.getElementById('edit-patronymic').value = user.patronymic || '';
+                document.getElementById('edit-class').value = user.class_name || '6';
+                document.getElementById('edit-scores').value = user.scores || 0;
+
+                document.getElementById('edit-modal').style.display = 'block';
+            } catch (error) {
+                alert('Ошибка загрузки данных');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-modal').style.display = 'none';
+        }
+
+        document.getElementById('edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = document.getElementById('edit-id').value;
+            const userData = {
+                name: document.getElementById('edit-name').value,
+                surname: document.getElementById('edit-surname').value,
+                patronymic: document.getElementById('edit-patronymic').value,
+                class_name: document.getElementById('edit-class').value,
+                scores: parseInt(document.getElementById('edit-scores').value)
+            };
+
+            try {
+                const response = await fetch(`/user/update/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Данные обновлены');
+                    closeEditModal();
+                    loadUsers();
+                } else {
+                    alert('Ошибка обновления');
+                }
+            } catch (error) {
+                alert('Ошибка при сохранении');
+            }
+        });
+
+        document.getElementById('delete-user-btn').addEventListener('click', async () => {
+            const id = document.getElementById('edit-id').value;
+
+            if (confirm('Вы уверены, что хотите удалить этого ученика?')) {
+                try {
+                    const response = await fetch(`/user/delete/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('Ученик удален');
+                        closeEditModal();
+                        loadUsers();
+                    } else {
+                        alert('Ошибка удаления');
+                    }
+                } catch (error) {
+                    alert('Ошибка при удалении');
+                }
+            }
+        });
+
+        function exportCSV() {
+            if (currentUsers.length === 0) {
+                alert('Нет данных для экспорта');
+                return;
+            }
+
+            let csv = 'ID,Фамилия,Имя,Отчество,Класс,Баллы\n';
+
+            for (let user of currentUsers) {
+                csv += `"${user.id}","${user.surname || ''}","${user.name || ''}","${user.patronymic || ''}","${user.class_name || ''}","${user.scores || 0}"\n`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'users.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>

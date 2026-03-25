@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School11 HUB — Прохождение теста</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🏫 School11 HUB</div>
+            <div class="user-info">
+                👋 {{ user }}
+            </div>
+            <div class="nav">
+                <a href="/main">Главная</a>
+                <a href="/tests">Тесты</a>
+                <a href="/materials">Материалы</a>
+                <a href="/logout">Выйти</a>
+            </div>
+        </div>
+
+        <div id="test-container">
+            <div style="text-align: center; padding: 40px;">
+                <div class="card" style="display: inline-block;">
+                    <p>Загрузка теста...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            © 2025 School11 HUB — Образовательный портал
+        </div>
+    </div>
+
+    <script>
+        const testId = {{ test_id }};
+
+        async function loadTest() {
+            try {
+                const response = await fetch(`/test_data/${testId}`);
+                const data = await response.json();
+
+                if (!data || !data.questions) {
+                    document.getElementById('test-container').innerHTML = `
+                        <div style="text-align: center; padding: 40px;">
+                            <div class="card" style="display: inline-block;">
+                                <p>❌ Тест не найден</p>
+                                <a href="/tests" class="btn" style="margin-top: 15px;">Вернуться к тестам</a>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <div class="form-container" style="max-width: 800px;">
+                        <h2 style="text-align: center; margin-bottom: 20px;">📋 ${data.name}</h2>
+                        <p style="text-align: center; margin-bottom: 30px;"><strong>${data.subject}</strong> | ${data.class} класс</p>
+                        <form id="test-form">
+                `;
+
+                for (let i = 0; i < data.questions.length; i++) {
+                    const q = data.questions[i];
+                    html += `
+                        <div class="card" style="margin-bottom: 20px;">
+                            <h3>Вопрос ${i + 1}</h3>
+                            <p style="margin: 15px 0;">${q.text}</p>
+                            <div class="form-group">
+                                <label>Ваш ответ</label>
+                                <input type="text" id="answer_${q.id}" placeholder="Введите ответ" required>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                            <button type="submit" class="btn" style="width: 100%;">Отправить ответы</button>
+                        </form>
+                        <div id="result"></div>
+                    </div>
+                `;
+
+                document.getElementById('test-container').innerHTML = html;
+
+                document.getElementById('test-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const answers = {};
+                    for (let q of data.questions) {
+                        const answer = document.getElementById(`answer_${q.id}`).value;
+                        answers[q.id] = answer;
+                    }
+
+                    try {
+                        const checkResponse = await fetch(`/test_check/${testId}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ answers: answers })
+                        });
+
+                        const result = await checkResponse.json();
+
+                        let resultHtml = `
+                            <div class="alert alert-info" style="margin-top: 20px;">
+                                <p><strong>Результат:</strong> ${result.score} из ${result.total} баллов</p>
+                                <p><strong>Оценка:</strong> ${result.grade}</p>
+                            </div>
+                        `;
+
+                        for (let [qId, isCorrect] of Object.entries(result.results)) {
+                            resultHtml += `
+                                <div class="alert ${isCorrect ? 'alert-success' : 'alert-error'}" style="margin-top: 10px;">
+                                    Вопрос ${qId}: ${isCorrect ? '✅ Правильно' : '❌ Неправильно'}
+                                </div>
+                            `;
+                        }
+
+                        document.getElementById('result').innerHTML = resultHtml;
+                        document.getElementById('test-form').querySelector('button').disabled = true;
+
+                    } catch (error) {
+                        alert('Ошибка при проверке ответов');
+                    }
+                });
+
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('test-container').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <div class="card" style="display: inline-block;">
+                            <p>❌ Ошибка загрузки теста</p>
+                            <a href="/tests" class="btn" style="margin-top: 15px;">Вернуться к тестам</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        loadTest();
+    </script>
+</body>
+</html>
