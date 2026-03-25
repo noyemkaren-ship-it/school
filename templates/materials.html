@@ -2,9 +2,94 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>School11 HUB — Материалы</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        @media (max-width: 768px) {
+            .card {
+                padding: 15px;
+            }
+            .card h3 {
+                font-size: 18px;
+            }
+            .card p {
+                font-size: 14px;
+            }
+            .card .text-content {
+                font-size: 14px;
+                max-height: none;
+                overflow: visible;
+            }
+            .btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+            .header {
+                padding: 15px;
+            }
+            .logo {
+                font-size: 18px;
+            }
+            .nav {
+                gap: 8px;
+            }
+            .nav a {
+                padding: 5px 10px;
+                font-size: 12px;
+            }
+        }
+
+        .card .text-content {
+            margin-top: 15px;
+            color: #444;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        .card .text-content.full {
+            max-height: none;
+        }
+
+        .read-more-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 8px;
+            padding: 5px 10px;
+            display: inline-block;
+        }
+
+        .read-more-btn:hover {
+            text-decoration: underline;
+        }
+
+        .material-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .subject-badge {
+            background: #667eea20;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -21,8 +106,8 @@
             </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 style="color: white;">📚 Все материалы</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h2 style="color: white; margin: 0;">📚 Все материалы</h2>
             <a href="/materials/add" class="btn">+ Добавить материал</a>
         </div>
 
@@ -82,11 +167,21 @@
                         };
                         const subjectName = subjectNames[item.school_subject] || item.school_subject;
 
+                        // Экранируем текст для безопасности
+                        const escapedText = item.text || '';
+                        const textId = `text-${item.id}`;
+
                         html += `
                             <div class="card">
-                                <h3>📄 ${item.name}</h3>
-                                <p><strong>${subjectName}</strong> | ${item.school_class} класс</p>
-                                <p style="margin-top: 15px; color: #666;">${item.text.substring(0, 150)}${item.text.length > 150 ? '...' : ''}</p>
+                                <h3>📄 ${escapeHtml(item.name)}</h3>
+                                <div class="material-meta">
+                                    <span class="subject-badge">${subjectName}</span>
+                                    <span>📖 ${item.school_class} класс</span>
+                                </div>
+                                <div id="${textId}" class="text-content">${escapeHtml(escapedText)}</div>
+                                <div style="margin-top: 15px;">
+                                    <a href="/materials/${item.id}" class="btn" style="padding: 6px 15px; font-size: 13px;">📖 Читать полностью</a>
+                                </div>
                             </div>
                         `;
                     }
@@ -103,6 +198,12 @@
                     </div>
                 `;
             }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         loadMaterials();
