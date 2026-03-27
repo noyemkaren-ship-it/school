@@ -6,6 +6,7 @@ from api.router import router
 import os
 from common.utils import MCKO_QUESTIONS
 import urllib.parse
+from api.services import clean_answer
 
 app = FastAPI(title="School11_HUB")
 
@@ -29,6 +30,7 @@ async def get_mcko_questions(subject: str, class_level: int, variant: int):
 async def check_mcko_answers(answers: dict):
     variant_key = answers.get("variant_key")
     user_answers = answers.get("answers", {})
+    user_id = answers.get("user_id")
 
     if variant_key not in MCKO_QUESTIONS:
         raise HTTPException(status_code=404, detail="Вариант не найден")
@@ -37,22 +39,37 @@ async def check_mcko_answers(answers: dict):
     score = 0
     results = {}
 
+
     for q in questions:
         q_id = str(q["id"])
         user_ans = user_answers.get(q_id, "")
-        is_correct = user_ans.lower().strip() == q["answer"].lower().strip()
+        user_ans_clean = clean_answer(user_ans)
+        correct_ans = clean_answer(q["answer"])
+
+        is_correct = user_ans_clean == correct_ans
         if is_correct:
             score += 1
         results[q_id] = is_correct
 
     total = len(questions)
     grade = 2
-    if score >= total - 1:
+    if score >= 4:
         grade = 5
-    elif score >= total - 2:
+    elif score >= 3:
         grade = 4
-    elif score >= total // 2:
+    elif score >= 2:
         grade = 3
+    if user_id:
+        try:
+            from database.UserRepository import UserRepository
+            repo = UserRepository()
+            user = repo.get_by_id(user_id)
+            if user:
+                repo.update_score_by_id(user_id, user.scores + score)
+                repo.save_test_result(user_id, variant_key, score, total, grade)
+            repo.close()
+        except Exception as e:
+            print(f"Ошибка сохранения: {e}")
 
     return {
         "score": score,
