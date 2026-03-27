@@ -5,6 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School11 HUB — Образовательный портал</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .search-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        .search-filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .search-filters select {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        .search-results {
+            margin-top: 20px;
+        }
+        .result-item {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .result-item h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        .result-meta {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        .result-text {
+            color: #444;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        @media (max-width: 768px) {
+            .search-filters select {
+                min-width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -17,7 +68,7 @@
             </div>
         </div>
 
-        <div style="text-align: center; padding: 60px 20px;">
+        <div style="text-align: center; padding: 40px 20px 20px 20px;">
             <h1 style="font-size: 48px; color: white; margin-bottom: 20px;">Добро пожаловать в<br>School11 HUB</h1>
             <p style="font-size: 20px; color: rgba(255,255,255,0.9); margin-bottom: 40px;">
                 Образовательный портал для учителей и учеников
@@ -38,7 +89,33 @@
             {% endif %}
         </div>
 
-        <div class="grid" style="margin-top: 40px;">
+        <!-- Блок поиска материалов -->
+        <div class="search-card">
+            <h3>🔍 Найти материалы</h3>
+            <div class="search-filters">
+                <select id="search-subject">
+                    <option value="">Все предметы</option>
+                    <option value="english">🇬🇧 Английский язык</option>
+                    <option value="chinese">🇨🇳 Китайский язык</option>
+                    <option value="russian">🇷🇺 Русский язык</option>
+                    <option value="math">📐 Математика</option>
+                </select>
+                <select id="search-class">
+                    <option value="">Все классы</option>
+                    <option value="5">5 класс</option>
+                    <option value="6">6 класс</option>
+                    <option value="7">7 класс</option>
+                    <option value="8">8 класс</option>
+                    <option value="9">9 класс</option>
+                    <option value="10">10 класс</option>
+                    <option value="11">11 класс</option>
+                </select>
+                <button onclick="searchMaterials()" class="btn">🔍 Найти</button>
+            </div>
+            <div id="search-results" class="search-results"></div>
+        </div>
+
+        <div class="grid" style="margin-top: 20px;">
             <div class="card">
                 <h3>📚 Для учителей</h3>
                 <p>Создавайте тесты, загружайте материалы, следите за успеваемостью учеников</p>
@@ -57,91 +134,90 @@
             © 2025 School11 HUB — Образовательный портал
         </div>
     </div>
-    <!-- Добавь после приветствия -->
-<div class="card" style="margin-bottom: 30px;">
-    <h3>🔍 Найти материалы</h3>
-    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px;">
-        <select id="search-subject" style="flex: 1;">
-            <option value="">Все предметы</option>
-            <option value="english">🇬🇧 Английский</option>
-            <option value="chinese">🇨🇳 Китайский</option>
-            <option value="russian">🇷🇺 Русский</option>
-            <option value="math">📐 Математика</option>
-        </select>
-        <select id="search-class" style="flex: 1;">
-            <option value="">Все классы</option>
-            <option value="5">5 класс</option>
-            <option value="6">6 класс</option>
-            <option value="7">7 класс</option>
-            <option value="8">8 класс</option>
-            <option value="9">9 класс</option>
-            <option value="10">10 класс</option>
-            <option value="11">11 класс</option>
-        </select>
-        <button onclick="searchMaterials()" class="btn">Найти</button>
-    </div>
-    <div id="search-results" style="margin-top: 20px;"></div>
-</div>
 
     <script>
-    async function searchMaterials() {
-        const subject = document.getElementById('search-subject').value;
-        const classNum = document.getElementById('search-class').value;
+        async function searchMaterials() {
+            const subject = document.getElementById('search-subject').value;
+            const classNum = document.getElementById('search-class').value;
+            const resultsDiv = document.getElementById('search-results');
 
-        if (!subject && !classNum) {
-            alert('Выберите предмет или класс');
-            return;
-        }
-
-        let url = '/datas';
-        if (subject && classNum) {
-            url = `/data/${subject}/${classNum}`;
-        } else if (subject) {
-            url = `/data/${subject}/all`;
-        } else if (classNum) {
-            url = `/data/all/${classNum}`;
-        }
-
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-
-            const container = document.getElementById('search-results');
-
-            if (data.message && data.message.includes("404")) {
-                container.innerHTML = '<p>📭 Материалы не найдены</p>';
+            if (!subject && !classNum) {
+                resultsDiv.innerHTML = '<p style="color: #ff6b6b;">⚠️ Выберите предмет или класс для поиска</p>';
                 return;
             }
 
-            if (Array.isArray(data) && data.length === 0) {
-                container.innerHTML = '<p>📭 Материалы не найдены</p>';
-                return;
+            resultsDiv.innerHTML = '<p>🔍 Загрузка...</p>';
+
+            let url = '/datas';
+            if (subject && classNum) {
+                url = `/data/${subject}/${classNum}`;
+            } else if (subject) {
+                url = `/data/${subject}/all`;
+            } else if (classNum) {
+                url = `/data/all/${classNum}`;
             }
 
-            let html = '<h4>Результаты поиска:</h4>';
-            const items = Array.isArray(data) ? data : [data];
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
 
-            for (let item of items) {
+                // Проверяем, что данные — это массив
+                let materials = [];
+                if (Array.isArray(data)) {
+                    materials = data;
+                } else if (data && !data.message) {
+                    materials = [data];
+                }
+
+                if (materials.length === 0 || (data.message && data.message.includes("404"))) {
+                    resultsDiv.innerHTML = '<p>📭 Материалы не найдены</p>';
+                    return;
+                }
+
                 const subjectNames = {
                     'english': '🇬🇧 Английский',
                     'chinese': '🇨🇳 Китайский',
                     'russian': '🇷🇺 Русский',
                     'math': '📐 Математика'
                 };
-                html += `
-                    <div class="card" style="margin-top: 10px;">
-                        <h3>📄 ${item.name}</h3>
-                        <p>${subjectNames[item.school_subject] || item.school_subject} | ${item.school_class} класс</p>
-                        <p>${item.text.substring(0, 100)}${item.text.length > 100 ? '...' : ''}</p>
-                    </div>
-                `;
+
+                let html = '<h4>📖 Результаты поиска:</h4>';
+                for (let item of materials) {
+                    const subjectName = subjectNames[item.school_subject] || item.school_subject;
+                    const textPreview = item.text ? (item.text.substring(0, 150) + (item.text.length > 150 ? '...' : '')) : 'Нет описания';
+
+                    html += `
+                        <div class="result-item">
+                            <h4>📄 ${escapeHtml(item.name)}</h4>
+                            <div class="result-meta">
+                                <span>${subjectName}</span> | <span>${item.school_class} класс</span>
+                            </div>
+                            <div class="result-text">${escapeHtml(textPreview)}</div>
+                        </div>
+                    `;
+                }
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                resultsDiv.innerHTML = '<p>❌ Ошибка поиска. Проверьте подключение к серверу.</p>';
             }
-            container.innerHTML = html;
-        } catch (error) {
-            console.error('Ошибка:', error);
-            document.getElementById('search-results').innerHTML = '<p>❌ Ошибка поиска</p>';
         }
-    }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Добавляем поиск по Enter
+        document.getElementById('search-class').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchMaterials();
+        });
+        document.getElementById('search-subject').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchMaterials();
+        });
     </script>
 </body>
 </html>
