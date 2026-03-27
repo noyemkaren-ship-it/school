@@ -108,3 +108,11 @@ async def get_user_data(request: Request):
 async def delete_user(user_id: int):
     user_repo.delete(user_id)
     return {'message': 'Is sucesfull'}
+
+@router.get("/data/{subject}/all")
+async def get_by_subject(subject: str):
+    return data_repo.get_by_school_subject(subject)
+
+@router.get("/data/all/{class_num}")
+async def get_by_class(class_num: int):
+    return data_repo.get_by_class(class_num)

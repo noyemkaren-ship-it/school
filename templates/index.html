@@ -57,5 +57,91 @@
             © 2025 School11 HUB — Образовательный портал
         </div>
     </div>
+    <!-- Добавь после приветствия -->
+<div class="card" style="margin-bottom: 30px;">
+    <h3>🔍 Найти материалы</h3>
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px;">
+        <select id="search-subject" style="flex: 1;">
+            <option value="">Все предметы</option>
+            <option value="english">🇬🇧 Английский</option>
+            <option value="chinese">🇨🇳 Китайский</option>
+            <option value="russian">🇷🇺 Русский</option>
+            <option value="math">📐 Математика</option>
+        </select>
+        <select id="search-class" style="flex: 1;">
+            <option value="">Все классы</option>
+            <option value="5">5 класс</option>
+            <option value="6">6 класс</option>
+            <option value="7">7 класс</option>
+            <option value="8">8 класс</option>
+            <option value="9">9 класс</option>
+            <option value="10">10 класс</option>
+            <option value="11">11 класс</option>
+        </select>
+        <button onclick="searchMaterials()" class="btn">Найти</button>
+    </div>
+    <div id="search-results" style="margin-top: 20px;"></div>
+</div>
+
+    <script>
+    async function searchMaterials() {
+        const subject = document.getElementById('search-subject').value;
+        const classNum = document.getElementById('search-class').value;
+
+        if (!subject && !classNum) {
+            alert('Выберите предмет или класс');
+            return;
+        }
+
+        let url = '/datas';
+        if (subject && classNum) {
+            url = `/data/${subject}/${classNum}`;
+        } else if (subject) {
+            url = `/data/${subject}/all`;
+        } else if (classNum) {
+            url = `/data/all/${classNum}`;
+        }
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const container = document.getElementById('search-results');
+
+            if (data.message && data.message.includes("404")) {
+                container.innerHTML = '<p>📭 Материалы не найдены</p>';
+                return;
+            }
+
+            if (Array.isArray(data) && data.length === 0) {
+                container.innerHTML = '<p>📭 Материалы не найдены</p>';
+                return;
+            }
+
+            let html = '<h4>Результаты поиска:</h4>';
+            const items = Array.isArray(data) ? data : [data];
+
+            for (let item of items) {
+                const subjectNames = {
+                    'english': '🇬🇧 Английский',
+                    'chinese': '🇨🇳 Китайский',
+                    'russian': '🇷🇺 Русский',
+                    'math': '📐 Математика'
+                };
+                html += `
+                    <div class="card" style="margin-top: 10px;">
+                        <h3>📄 ${item.name}</h3>
+                        <p>${subjectNames[item.school_subject] || item.school_subject} | ${item.school_class} класс</p>
+                        <p>${item.text.substring(0, 100)}${item.text.length > 100 ? '...' : ''}</p>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Ошибка:', error);
+            document.getElementById('search-results').innerHTML = '<p>❌ Ошибка поиска</p>';
+        }
+    }
+    </script>
 </body>
 </html>

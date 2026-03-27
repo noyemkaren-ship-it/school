@@ -2,7 +2,7 @@
 
 MCKO_QUESTIONS = {
     "english_6_v1": {
-        "subject": "Английский язык",
+        "subject": "🇬🇧 Английский язык",
         "class": 6,
         "variant": 1,
         "questions": [
@@ -14,7 +14,7 @@ MCKO_QUESTIONS = {
         ]
     },
     "english_6_v2": {
-        "subject": "Английский язык",
+        "subject": "🇬🇧 Английский язык",
         "class": 6,
         "variant": 2,
         "questions": [
@@ -26,7 +26,7 @@ MCKO_QUESTIONS = {
         ]
     },
     "english_6_v3": {
-        "subject": "Английский язык",
+        "subject": "🇬🇧 Английский язык",
         "class": 6,
         "variant": 3,
         "questions": [
@@ -38,7 +38,7 @@ MCKO_QUESTIONS = {
         ]
     },
     "math_6_v1": {
-        "subject": "Математика",
+        "subject": "📐 Математика",
         "class": 6,
         "variant": 1,
         "questions": [
@@ -49,8 +49,20 @@ MCKO_QUESTIONS = {
             {"id": 5, "text": "Найдите площадь квадрата со стороной 5 см", "options": ["10 см²", "15 см²", "20 см²", "25 см²"], "answer": "25 см²"}
         ]
     },
+    "math_6_v2": {
+        "subject": "📐 Математика",
+        "class": 6,
+        "variant": 2,
+        "questions": [
+            {"id": 1, "text": "Решите уравнение: 3x - 7 = 8", "options": ["x = 3", "x = 5", "x = 7", "x = 9"], "answer": "x = 5"},
+            {"id": 2, "text": "Вычислите: 15 × 6", "options": ["80", "85", "90", "95"], "answer": "90"},
+            {"id": 3, "text": "Какое число является составным?", "options": ["2", "3", "5", "9"], "answer": "9"},
+            {"id": 4, "text": "Сколько будет 2/5 от 100?", "options": ["20", "40", "60", "80"], "answer": "40"},
+            {"id": 5, "text": "Найдите периметр квадрата со стороной 6 см", "options": ["24 см", "12 см", "36 см", "18 см"], "answer": "24 см"}
+        ]
+    },
     "russian_6_v1": {
-        "subject": "Русский язык",
+        "subject": "🇷🇺 Русский язык",
         "class": 6,
         "variant": 1,
         "questions": [
@@ -62,7 +74,7 @@ MCKO_QUESTIONS = {
         ]
     },
     "chinese_6_v1": {
-        "subject": "Китайский язык",
+        "subject": "🇨🇳 Китайский язык",
         "class": 6,
         "variant": 1,
         "questions": [
@@ -75,4 +87,4 @@ MCKO_QUESTIONS = {
     }
 }
 
-MCKO_ANSWERS = {}
+MCKO_ANSWERS = {}  # для совместимости

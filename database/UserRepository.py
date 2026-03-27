@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy.orm import Session
 from models.user import User
 from database.db import SessionLocal
@@ -54,3 +56,27 @@ class UserRepository:
         if user and user.password == password:
             return {"user_id": user.id, "success": True}
         return {"success": False, "message": "Неверная фамилия или пароль"}
+
+    def save_test_result(self, user_id: int, test_name: str, score: int, total: int, grade: int):
+        try:
+            from models.test_result import TestResult
+            result = TestResult(
+                user_id=user_id,
+                test_name=test_name,
+                score=score,
+                total=total,
+                grade=grade,
+                date=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            )
+            self.db.add(result)
+            self.db.commit()
+        except Exception as e:
+            print(f"Ошибка сохранения результата: {e}")
+
+    def update_score_by_id(self, user_id: int, new_score: int):
+        user = self.get_by_id(user_id)
+        if user:
+            user.scores = new_score
+            self.db.commit()
+            self.db.refresh(user)
+        return user
