@@ -6,7 +6,6 @@ from api.router import router
 import os
 from common.utils import MCKO_QUESTIONS
 import urllib.parse
-from api.services import clean_answer
 
 app = FastAPI(title="School11_HUB")
 
