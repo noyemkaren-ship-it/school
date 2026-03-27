@@ -2,22 +2,145 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>School11 HUB — Панель управления</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .search-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            padding: 25px;
+            margin-bottom: 30px;
+            color: white;
+        }
+        .search-title {
+            font-size: 24px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .search-box {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .search-box input, .search-box select {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            outline: none;
+        }
+        .search-box button {
+            padding: 12px 30px;
+            border-radius: 30px;
+            background: white;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .search-box button:hover {
+            transform: scale(1.02);
+        }
+        .results-grid {
+            margin-top: 20px;
+        }
+        .material-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .material-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .material-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .material-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 12px;
+        }
+        .material-preview {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .badge-subject {
+            background: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .no-results {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            color: #888;
+        }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .action-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .action-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+        .action-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .action-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        @media (max-width: 768px) {
+            .search-box input, .search-box select {
+                min-width: 100%;
+            }
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">🏫 School11 HUB</div>
-            <div class="user-info">
-                👋 {{ user }}
-            </div>
+            <div class="user-info">👋 {{ user }}</div>
             <div class="nav">
-                <a href="/main">Главная</a>
+                <a href="/">Главная</a>
                 <a href="/users">Ученики</a>
                 <a href="/materials">Материалы</a>
-                <a href="/tests">Тесты</a>
                 <a href="/results">Результаты</a>
                 <a href="/mcko">МЦКО</a>
                 <a href="/profile">Профиль</a>
@@ -25,41 +148,66 @@
             </div>
         </div>
 
-        <div class="grid">
-            <div class="card">
-                <h3>📚 Ученики</h3>
-                <p>Просмотр списка учеников, их баллов и успеваемости</p>
-                <a href="/users" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+        <!-- Поиск материалов -->
+        <div class="search-section">
+            <div class="search-title">
+                🔍 <span>Поиск учебных материалов</span>
             </div>
-
-            <div class="card">
-                <h3>📖 Материалы</h3>
-                <p>Учебные материалы, презентации, документы по предметам</p>
-                <a href="/materials" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            <div class="search-box">
+                <input type="text" id="search-name" placeholder="Название материала..." autocomplete="off">
+                <select id="search-subject">
+                    <option value="">Все предметы</option>
+                    <option value="english">🇬🇧 Английский</option>
+                    <option value="chinese">🇨🇳 Китайский</option>
+                    <option value="russian">🇷🇺 Русский</option>
+                    <option value="math">📐 Математика</option>
+                </select>
+                <select id="search-class">
+                    <option value="">Все классы</option>
+                    <option value="5">5 класс</option>
+                    <option value="6">6 класс</option>
+                    <option value="7">7 класс</option>
+                    <option value="8">8 класс</option>
+                    <option value="9">9 класс</option>
+                    <option value="10">10 класс</option>
+                    <option value="11">11 класс</option>
+                </select>
+                <button onclick="searchMaterials()">Найти</button>
             </div>
+            <div id="search-results" class="results-grid"></div>
+        </div>
 
-            <div class="card">
-                <h3>📝 Тесты</h3>
-                <p>Создание и прохождение тестов, контроль знаний</p>
-                <a href="/tests" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+        <!-- Быстрые действия -->
+        <div class="quick-actions">
+            <div class="action-card">
+                <div class="action-icon">👨‍🎓</div>
+                <div class="action-title">Ученики</div>
+                <div class="action-desc">Просмотр списка учеников, их баллов и успеваемости</div>
+                <a href="/users" class="btn" style="padding: 8px 20px;">Перейти →</a>
             </div>
-
-            <div class="card">
-                <h3>📊 Результаты</h3>
-                <p>Статистика успеваемости, оценки, прогресс учеников</p>
-                <a href="/results" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            <div class="action-card">
+                <div class="action-icon">📖</div>
+                <div class="action-title">Материалы</div>
+                <div class="action-desc">Все учебные материалы, презентации, документы</div>
+                <a href="/materials" class="btn" style="padding: 8px 20px;">Перейти →</a>
             </div>
-
-            <div class="card">
-                <h3>🎯 МЦКО</h3>
-                <p>Тренировочные варианты по математике, русскому, английскому, китайскому</p>
-                <a href="/mcko" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            <div class="action-card">
+                <div class="action-icon">📊</div>
+                <div class="action-title">Результаты</div>
+                <div class="action-desc">Статистика успеваемости, оценки, прогресс учеников</div>
+                <a href="/results" class="btn" style="padding: 8px 20px;">Перейти →</a>
             </div>
-
-            <div class="card">
-                <h3>👤 Профиль</h3>
-                <p>Настройки аккаунта, личная информация</p>
-                <a href="/profile" class="btn" style="margin-top: 15px; display: inline-block;">Перейти →</a>
+            <div class="action-card">
+                <div class="action-icon">🎯</div>
+                <div class="action-title">МЦКО</div>
+                <div class="action-desc">Тренировочные варианты по всем предметам</div>
+                <a href="/mcko" class="btn" style="padding: 8px 20px;">Перейти →</a>
+            </div>
+            <div class="action-card">
+                <div class="action-icon">👤</div>
+                <div class="action-title">Профиль</div>
+                <div class="action-desc">Настройки аккаунта, личная информация</div>
+                <a href="/profile" class="btn" style="padding: 8px 20px;">Перейти →</a>
             </div>
         </div>
 
@@ -67,5 +215,104 @@
             © 2025 School11 HUB — Образовательный портал
         </div>
     </div>
+
+    <script>
+        let allMaterials = [];
+
+        async function loadAllMaterials() {
+            try {
+                const response = await fetch('/datas');
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    allMaterials = data;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+            }
+        }
+
+        async function searchMaterials() {
+            const nameQuery = document.getElementById('search-name').value.toLowerCase().trim();
+            const subject = document.getElementById('search-subject').value;
+            const classNum = document.getElementById('search-class').value;
+
+            const resultsDiv = document.getElementById('search-results');
+            resultsDiv.innerHTML = '<div style="text-align: center; padding: 20px;">🔍 Поиск...</div>';
+
+            // Если материалы ещё не загружены
+            if (allMaterials.length === 0) {
+                await loadAllMaterials();
+            }
+
+            let filtered = [...allMaterials];
+
+            // Фильтр по названию
+            if (nameQuery) {
+                filtered = filtered.filter(m =>
+                    m.name && m.name.toLowerCase().includes(nameQuery)
+                );
+            }
+
+            // Фильтр по предмету
+            if (subject) {
+                filtered = filtered.filter(m => m.school_subject === subject);
+            }
+
+            // Фильтр по классу
+            if (classNum) {
+                filtered = filtered.filter(m => m.school_class == classNum);
+            }
+
+            if (filtered.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="no-results">
+                        📭 Материалы не найдены<br>
+                        <small>Попробуйте изменить параметры поиска</small>
+                    </div>
+                `;
+                return;
+            }
+
+            const subjectNames = {
+                'english': '🇬🇧 Английский',
+                'chinese': '🇨🇳 Китайский',
+                'russian': '🇷🇺 Русский',
+                'math': '📐 Математика'
+            };
+
+            let html = '';
+            for (let item of filtered) {
+                const subjectName = subjectNames[item.school_subject] || item.school_subject;
+                const preview = item.text ? (item.text.substring(0, 120) + (item.text.length > 120 ? '...' : '')) : 'Нет описания';
+
+                html += `
+                    <div class="material-card">
+                        <div class="material-title">📄 ${escapeHtml(item.name)}</div>
+                        <div class="material-meta">
+                            <span class="badge-subject">${subjectName}</span>
+                            <span>📖 ${item.school_class} класс</span>
+                        </div>
+                        <div class="material-preview">${escapeHtml(preview)}</div>
+                    </div>
+                `;
+            }
+            resultsDiv.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Загружаем материалы при старте
+        loadAllMaterials();
+
+        // Поиск по Enter
+        document.getElementById('search-name').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchMaterials();
+        });
+    </script>
 </body>
 </html>

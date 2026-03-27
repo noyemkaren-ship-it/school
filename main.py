@@ -78,6 +78,14 @@ async def main_page(request: Request):
         return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
     return templates.TemplateResponse("error.html", {"request": request, "error": "Необходимо войти в систему"})
 
+@app.get("/index")
+async def main_page(request: Request):
+    raw_surname = request.cookies.get("surname")
+    user = urllib.parse.unquote(raw_surname) if raw_surname else None
+    if user:
+        return templates.TemplateResponse("index.html", {"request": request, "user": user})
+    return templates.TemplateResponse("error.html", {"request": request, "error": "Необходимо войти в систему"})
+
 
 @app.get("/users")
 async def users_page(request: Request):
@@ -216,3 +224,4 @@ async def internal_error_handler(request: Request, exc: HTTPException):
 @app.get("/error")
 async def error_page(request: Request, error: str = ""):
     return templates.TemplateResponse("error.html", {"request": request, "error": error})
+
