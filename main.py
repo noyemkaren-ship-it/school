@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 from api.router import router
 import os
-from comon.utils import MCKO_ANSWERS
+from common.utils import MCKO_QUESTIONS
 import urllib.parse
 
 app = FastAPI(title="School11_HUB")
@@ -20,19 +20,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/api/mcko/{subject}/{class_level}/{variant}")
 async def get_mcko_questions(subject: str, class_level: int, variant: int):
     key = f"{subject}_{class_level}_v{variant}"
-    if key in MCKO_ANSWERS:
-        return {
-            "subject": subject,
-            "class": class_level,
-            "variant": variant,
-            "questions": [
-                {"id": 1, "question": f"Вопрос 1 по {subject}"},
-                {"id": 2, "question": f"Вопрос 2 по {subject}"},
-                {"id": 3, "question": f"Вопрос 3 по {subject}"},
-                {"id": 4, "question": f"Вопрос 4 по {subject}"},
-                {"id": 5, "question": f"Вопрос 5 по {subject}"}
-            ]
-        }
+    if key in MCKO_QUESTIONS:
+        return MCKO_QUESTIONS[key]
     raise HTTPException(status_code=404, detail="Вариант не найден")
 
 
@@ -41,33 +30,36 @@ async def check_mcko_answers(answers: dict):
     variant_key = answers.get("variant_key")
     user_answers = answers.get("answers", {})
 
-    if variant_key not in MCKO_ANSWERS:
+    if variant_key not in MCKO_QUESTIONS:
         raise HTTPException(status_code=404, detail="Вариант не найден")
 
-    correct = MCKO_ANSWERS[variant_key]
+    questions = MCKO_QUESTIONS[variant_key]["questions"]
     score = 0
     results = {}
 
-    for q_id, user_ans in user_answers.items():
-        if str(q_id) in correct:
-            is_correct = str(user_ans).lower() == str(correct[str(q_id)]).lower()
-            if is_correct:
-                score += 1
-            results[q_id] = is_correct
+    for q in questions:
+        q_id = str(q["id"])
+        user_ans = user_answers.get(q_id, "")
+        is_correct = user_ans.lower().strip() == q["answer"].lower().strip()
+        if is_correct:
+            score += 1
+        results[q_id] = is_correct
 
+    total = len(questions)
     grade = 2
-    if score >= 4:
+    if score >= total - 1:
         grade = 5
-    elif score == 3:
+    elif score >= total - 2:
         grade = 4
-    elif score == 2:
+    elif score >= total // 2:
         grade = 3
 
     return {
         "score": score,
-        "total": len(correct),
+        "total": total,
         "grade": grade,
-        "results": results
+        "results": results,
+        "questions": questions
     }
 
 
@@ -85,6 +77,7 @@ async def main_page(request: Request):
     if user:
         return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
     return templates.TemplateResponse("error.html", {"request": request, "error": "Необходимо войти в систему"})
+
 
 @app.get("/users")
 async def users_page(request: Request):
@@ -155,16 +148,19 @@ async def results_page(request: Request):
 
 @app.get("/profile")
 async def profile_page(request: Request):
-    user = request.cookies.get("surname")
+    raw_surname = request.cookies.get("surname")
+    user = urllib.parse.unquote(raw_surname) if raw_surname else None
     if user:
         return templates.TemplateResponse("profile.html", {"request": request, "user": user})
     return templates.TemplateResponse("error.html", {"request": request, "error": "Доступ запрещен"})
+
 
 @app.get("/mcko")
 async def mcko_page(request: Request):
     raw_surname = request.cookies.get("surname")
     user = urllib.parse.unquote(raw_surname) if raw_surname else None
     return templates.TemplateResponse("mcko.html", {"request": request, "user": user})
+
 
 @app.get("/my_scores")
 async def my_scores_page(request: Request):

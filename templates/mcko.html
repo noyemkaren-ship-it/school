@@ -2,17 +2,108 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>School11 HUB — МЦКО</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .mcko-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transition: transform 0.3s;
+        }
+        .mcko-card:hover {
+            transform: translateY(-5px);
+        }
+        .variant-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .variant-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .variant-btn:hover {
+            background: rgba(255,255,255,0.4);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .modal-content {
+            max-width: 800px;
+            margin: 30px auto;
+        }
+        .question-block {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .option {
+            display: block;
+            margin: 10px 0;
+            padding: 10px 15px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option:hover {
+            background: #e0e0e0;
+        }
+        .option.selected {
+            background: #667eea;
+            color: white;
+        }
+        .result-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .result-correct {
+            background: #d4edda;
+            color: #155724;
+        }
+        .result-wrong {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 10px auto;
+            }
+            .question-block {
+                padding: 15px;
+            }
+            .option {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">🏫 School11 HUB</div>
-            <div class="user-info">
-                👋 {{ user }}
-            </div>
+            <div class="user-info">👋 {{ user }}</div>
             <div class="nav">
                 <a href="/main">Главная</a>
                 <a href="/materials">Материалы</a>
@@ -22,112 +113,105 @@
             </div>
         </div>
 
-        <h2 style="color: white; margin-bottom: 20px;">🎯 МЦКО — тренировочные варианты</h2>
+        <h2 style="color: white; margin-bottom: 20px;">🎯 МЦКО — Тренировочные варианты</h2>
+        <p style="color: rgba(255,255,255,0.8); margin-bottom: 30px;">Выберите предмет и вариант для прохождения теста</p>
 
-        <div class="grid" id="subjects-grid">
-            <div class="card">
-                <h3>🇬🇧 Английский язык</h3>
-                <p>6 класс, 3 варианта</p>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button onclick="startTest('english', 6, 1)" class="btn">Вариант 1</button>
-                    <button onclick="startTest('english', 6, 2)" class="btn">Вариант 2</button>
-                    <button onclick="startTest('english', 6, 3)" class="btn">Вариант 3</button>
-                </div>
+        <div class="grid" id="mcko-grid"></div>
+
+        <div class="footer">© 2025 School11 HUB — Образовательный портал</div>
+    </div>
+
+    <!-- Модальное окно для теста -->
+    <div id="test-modal" class="modal">
+        <div class="modal-content">
+            <div class="card" style="position: relative;">
+                <button onclick="closeModal()" style="position: absolute; right: 20px; top: 20px; background: none; border: none; font-size: 24px; cursor: pointer;">✖</button>
+                <h2 id="modal-title" style="margin-bottom: 20px;"></h2>
+                <div id="modal-questions"></div>
+                <button id="submit-btn" class="btn" style="width: 100%; margin-top: 20px;">Отправить ответы</button>
+                <div id="modal-result" style="margin-top: 20px;"></div>
             </div>
-
-            <div class="card">
-                <h3>🇨🇳 Китайский язык</h3>
-                <p>6 класс, 3 варианта</p>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button onclick="startTest('chinese', 6, 1)" class="btn">Вариант 1</button>
-                    <button onclick="startTest('chinese', 6, 2)" class="btn">Вариант 2</button>
-                    <button onclick="startTest('chinese', 6, 3)" class="btn">Вариант 3</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>🇷🇺 Русский язык</h3>
-                <p>6 класс, 3 варианта</p>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button onclick="startTest('russian', 6, 1)" class="btn">Вариант 1</button>
-                    <button onclick="startTest('russian', 6, 2)" class="btn">Вариант 2</button>
-                    <button onclick="startTest('russian', 6, 3)" class="btn">Вариант 3</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>📐 Математика</h3>
-                <p>6 класс, 3 варианта</p>
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button onclick="startTest('math', 6, 1)" class="btn">Вариант 1</button>
-                    <button onclick="startTest('math', 6, 2)" class="btn">Вариант 2</button>
-                    <button onclick="startTest('math', 6, 3)" class="btn">Вариант 3</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="test-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto;">
-            <div style="max-width: 700px; margin: 50px auto; padding: 20px;">
-                <div class="card" id="test-content">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h3 id="test-title">Тест</h3>
-                        <button onclick="closeTest()" style="background: none; border: none; font-size: 24px; cursor: pointer;">✖</button>
-                    </div>
-                    <div id="test-questions"></div>
-                    <button onclick="submitTest()" class="btn" style="width: 100%; margin-top: 20px;">Отправить ответы</button>
-                    <div id="test-result" style="margin-top: 20px;"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            © 2025 School11 HUB — Образовательный портал
         </div>
     </div>
 
     <script>
+        const subjects = [
+            { id: "english", name: "🇬🇧 Английский язык", color: "#667eea" },
+            { id: "chinese", name: "🇨🇳 Китайский язык", color: "#f093fb" },
+            { id: "russian", name: "🇷🇺 Русский язык", color: "#4facfe" },
+            { id: "math", name: "📐 Математика", color: "#43e97b" }
+        ];
+
         let currentTest = null;
-        let currentQuestions = null;
+        let selectedAnswers = {};
+
+        function loadSubjects() {
+            const grid = document.getElementById('mcko-grid');
+            grid.innerHTML = '';
+
+            for (let subject of subjects) {
+                const card = document.createElement('div');
+                card.className = 'card mcko-card';
+                card.style.background = `linear-gradient(135deg, ${subject.color}, ${subject.color}dd)`;
+                card.innerHTML = `
+                    <h3>${subject.name}</h3>
+                    <p>6 класс, 3 варианта</p>
+                    <div class="variant-buttons">
+                        <button class="variant-btn" onclick="startTest('${subject.id}', 6, 1)">Вариант 1</button>
+                        <button class="variant-btn" onclick="startTest('${subject.id}', 6, 2)">Вариант 2</button>
+                        <button class="variant-btn" onclick="startTest('${subject.id}', 6, 3)">Вариант 3</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
 
         async function startTest(subject, classLevel, variant) {
             currentTest = { subject, classLevel, variant };
+            selectedAnswers = {};
 
             try {
                 const response = await fetch(`/api/mcko/${subject}/${classLevel}/${variant}`);
                 const data = await response.json();
-                currentQuestions = data.questions;
 
-                document.getElementById('test-title').innerHTML = `${subject.toUpperCase()} - ${classLevel} класс, вариант ${variant}`;
+                document.getElementById('modal-title').innerHTML = `${data.subject} — ${data.class} класс, вариант ${data.variant}`;
 
                 let questionsHtml = '';
                 for (let q of data.questions) {
                     questionsHtml += `
-                        <div style="margin-bottom: 25px;">
-                            <p><strong>${q.id}. ${q.question}</strong></p>
-                            <input type="text" id="answer_${q.id}" placeholder="Введите ответ" style="width: 100%; margin-top: 10px;">
+                        <div class="question-block" data-id="${q.id}">
+                            <h4 style="margin-bottom: 15px;">${q.id}. ${q.text}</h4>
+                            ${q.options.map(opt => `
+                                <label class="option">
+                                    <input type="radio" name="q${q.id}" value="${opt.replace(/"/g, '&quot;')}" style="margin-right: 10px;">
+                                    ${opt}
+                                </label>
+                            `).join('')}
                         </div>
                     `;
                 }
-                document.getElementById('test-questions').innerHTML = questionsHtml;
-                document.getElementById('test-result').innerHTML = '';
+
+                document.getElementById('modal-questions').innerHTML = questionsHtml;
+                document.getElementById('modal-result').innerHTML = '';
+                document.getElementById('submit-btn').style.display = 'block';
                 document.getElementById('test-modal').style.display = 'block';
+
+                // Сохраняем выбранные ответы
+                document.querySelectorAll('.option input').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        const questionId = e.target.closest('.question-block').dataset.id;
+                        selectedAnswers[questionId] = e.target.value;
+                    });
+                });
+
             } catch (error) {
+                console.error('Ошибка:', error);
                 alert('Ошибка загрузки теста');
             }
         }
 
-        function closeTest() {
-            document.getElementById('test-modal').style.display = 'none';
-        }
-
         async function submitTest() {
-            if (!currentTest || !currentQuestions) return;
-
-            const answers = {};
-            for (let q of currentQuestions) {
-                const answer = document.getElementById(`answer_${q.id}`).value;
-                answers[q.id] = answer;
-            }
+            if (!currentTest) return;
 
             const variantKey = `${currentTest.subject}_${currentTest.classLevel}_v${currentTest.variant}`;
 
@@ -137,31 +221,51 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         variant_key: variantKey,
-                        answers: answers
+                        answers: selectedAnswers
                     })
                 });
+
                 const result = await response.json();
 
                 let resultHtml = `
-                    <div class="alert alert-info">
-                        <p><strong>Результат:</strong> ${result.score} из ${result.total} баллов</p>
-                        <p><strong>Оценка:</strong> ${result.grade}</p>
+                    <div style="text-align: center; padding: 20px; background: #f0f0f0; border-radius: 16px; margin-bottom: 20px;">
+                        <h3>Результат: ${result.score} из ${result.total} баллов</h3>
+                        <h2 style="color: ${result.grade >= 4 ? '#28a745' : (result.grade >= 3 ? '#ffc107' : '#dc3545')};">Оценка: ${result.grade}</h2>
                     </div>
                 `;
 
-                for (let [qId, isCorrect] of Object.entries(result.results)) {
+                for (let q of result.questions) {
+                    const isCorrect = result.results[q.id];
                     resultHtml += `
-                        <div class="alert ${isCorrect ? 'alert-success' : 'alert-error'}" style="margin-top: 10px;">
-                            Вопрос ${qId}: ${isCorrect ? '✅ Правильно' : '❌ Неправильно'}
+                        <div class="question-block">
+                            <h4>${q.id}. ${q.text}</h4>
+                            <p><strong>Ваш ответ:</strong> ${selectedAnswers[q.id] || 'не выбран'}</p>
+                            <p><strong>Правильный ответ:</strong> ${q.answer}</p>
+                            <span class="result-badge ${isCorrect ? 'result-correct' : 'result-wrong'}">
+                                ${isCorrect ? '✅ Правильно' : '❌ Неправильно'}
+                            </span>
                         </div>
                     `;
                 }
 
-                document.getElementById('test-result').innerHTML = resultHtml;
+                document.getElementById('modal-result').innerHTML = resultHtml;
+                document.getElementById('submit-btn').style.display = 'none';
+
             } catch (error) {
-                alert('Ошибка проверки ответов');
+                console.error('Ошибка:', error);
+                alert('Ошибка при проверке ответов');
             }
         }
+
+        function closeModal() {
+            document.getElementById('test-modal').style.display = 'none';
+            currentTest = null;
+            selectedAnswers = {};
+        }
+
+        document.getElementById('submit-btn').addEventListener('click', submitTest);
+
+        loadSubjects();
     </script>
 </body>
 </html>
